@@ -1,0 +1,34 @@
+# Custom Policy for Guest Portal
+
+mac-addr-regexp = '([0-9a-f]{2})[^0-9a-f]?([0-9a-f]{2})[^0-9a-f]?([0-9a-f]{2})[^0-9a-f]?([0-9a-f]{2})[^0-9a-f]?([0-9a-f]{2})[^0-9a-f]?([0-9a-f]{2})'
+
+portal_rewrite_calling_station_id {
+	if (&Calling-Station-Id && (&Calling-Station-Id =~ /^${policy.mac-addr-regexp}$/i)) {
+		update request {
+			&Calling-Station-Id := "%{tolower:%{1}%{2}%{3}%{4}%{5}%{6}}"
+		}
+		updated
+	}
+	else {
+		noop
+	}
+}
+
+portal_rewrite_called_station_id {
+	if (&Called-Station-Id && (&Called-Station-Id =~ /^${policy.mac-addr-regexp}([^0-9a-f](.+))?$/i)) {
+		update request {
+			&Called-Station-Id := "%{tolower:%{1}%{2}%{3}%{4}%{5}%{6}}"
+		}
+
+		# SSID component?
+		if ("%{8}") {
+			update request {
+				&Called-Station-SSID := "%{8}"
+			}
+		}
+		updated
+	}
+	else {
+		noop
+	}
+}

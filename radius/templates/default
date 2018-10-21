@@ -1,0 +1,99 @@
+server default {
+listen {
+	type = auth
+	ipaddr = *
+	port = 0
+	limit {
+	      max_connections = 16
+	      lifetime = 0
+	      idle_timeout = 30
+	}
+}
+
+listen {
+	ipaddr = *
+	port = 0
+	type = acct
+	limit {	}
+}
+
+authorize {
+	filter_username
+	preprocess
+        portal_rewrite_calling_station_id
+        portal_rewrite_called_station_id
+
+        # Now check against the endpoints table
+        if("%{sql:SELECT COUNT(*) FROM `endpoints` WHERE mac = '%{Calling-Station-ID}' AND ssid = '%{Called-Station-SSID}'}" >= 1){
+                ok
+                update control {
+                        Auth-Type := Accept
+                }
+        }
+        else {
+		chap
+		mschap
+		digest
+		suffix
+		files
+		-sql
+		expiration
+		logintime
+		pap
+	}
+}
+
+authenticate {
+	Auth-Type PAP {
+		pap
+	}
+
+	Auth-Type CHAP {
+		chap
+	}
+
+	Auth-Type MS-CHAP {
+		mschap
+	}
+
+	mschap
+	digest
+}
+
+preacct {
+	preprocess
+	acct_unique
+	suffix
+	files
+}
+
+accounting {
+	detail
+	-sql
+	exec
+	attr_filter.accounting_response
+}
+
+session { }
+
+post-auth {
+	update {
+		&reply: += &session-state:
+	}
+	-sql
+	exec
+	remove_reply_message_if_eap
+	Post-Auth-Type REJECT {
+		-sql
+		attr_filter.access_reject
+		remove_reply_message_if_eap
+	}
+	Post-Auth-Type Challenge { }
+
+}
+
+pre-proxy { }
+
+post-proxy { }
+
+}

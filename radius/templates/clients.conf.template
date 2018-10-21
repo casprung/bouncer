@@ -1,0 +1,5 @@
+client 127.0.0.1/32 {
+  secret      = qmf7B4LJQxKmqkAQA
+  require_message_authenticator = no
+}
+${RADIUS_CLIENTS}

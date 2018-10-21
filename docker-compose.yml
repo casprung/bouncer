@@ -1,0 +1,72 @@
+version: '3'
+services:
+# DATABASE
+  db:
+    build: ./db
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER:     ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASS}
+# RADIUS
+  radius:
+    build: ./radius
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - webproxy
+      - default
+    ports:
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+    environment:
+      RADIUS_DB_HOST:   "db"
+      RADIUS_DB_NAME:   ${DATABASE_NAME}
+      RADIUS_DB_USER:   ${DATABASE_USER}
+      RADIUS_DB_PASS:   ${DATABASE_PASS}
+      RADIUS_CLIENTS:   ${RADIUS_CLIENTS}
+      RADIUS_AUTH_PORT: ${RADIUS_AUTH_PORT}
+      RADIUS_ACCT_PORT: ${RADIUS_ACCT_PORT}
+# WEB
+  web:
+    build: ./php
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PORTAL_DB_HOST:       "db"
+      PORTAL_DB_NAME:       ${DATABASE_NAME}
+      PORTAL_DB_USER:       ${DATABASE_USER}
+      PORTAL_DB_PASS:       ${DATABASE_PASS}
+      SMTP_HOST:            ${SMTP_HOST}
+      SMTP_PORT:            ${SMTP_PORT}
+      SMTP_USER:            ${SMTP_USER}
+      SMTP_PASS:            ${SMTP_PASS}
+      SMTP_CRYPTO:          ${SMTP_CRYPTO}
+      VIRTUAL_HOST:         ${VIRTUAL_HOST}
+      LETSENCRYPT_HOST:     ${VIRTUAL_HOST}
+      LETSENCRYPT_EMAIL:    ${LETSENCRYPT_EMAIL}
+      ENDPOINT_LIMIT:       ${ENDPOINT_LIMIT}
+      SPONSORCC:            ${SPONSORCC}
+      UAM_SHARED_SECRET:    ${UAM_SHARED_SECRET}
+      CI_ENCRYPTION_KEY:    ${CI_ENCRYPTION_KEY}
+      SIPGATE_SMS_ID:       ${SIPGATE_SMS_ID}
+      SIPGATE_ACCESS_TOKEN: ${SIPGATE_ACCESS_TOKEN}
+    networks:
+      - webproxy
+      - default
+#   ports:
+#     - "8000:80/tcp"
+    volumes:
+      - ./src/:/var/www/html/:ro
+
+volumes:
+  db_data:
+
+networks:
+  webproxy:
+    external: true
