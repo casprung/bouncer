@@ -42,7 +42,7 @@ A few settings are not available via the `.env` variables but need to be changed
 
 Now you can start Bouncer using the `docker-compose up` command. Please note Bouncers web interface is not meant to be reachable directly over the internet instead it relies on a reverse proxy as provided by the [LetsEncrypt companion container for nginx-proxy](https://github.com/JrCs/docker-letsencrypt-nginx-proxy-companion). This will also take care of the retrieval and renewal of the SSL certicate by using [Let's Encrypt](https://letsencrypt.org/) a free, automated, and open Certificate Authority. It is even possible to extend the functionality of the nginx-proxy to also load balance the UDP connections to the Radius containers.
 
-## Configure your Wifi
+## Configure your Wifi using HiveManager Classic
 If you're reading this you probably already have some experience with Aerohive access points and HiveManager. So I will not provide a detailed guide how to set it all up but I will point out the most critical settings.
 
 ### First step - Setup the Captive Web Portal (CWP)
